@@ -1,0 +1,10 @@
+#eclipse的项目下
+target
+.settings
+.project
+.springBeans
+.classpath
+#逆向文件
+mbg.xml
+#数据库文件
+db.properties
