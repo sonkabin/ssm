@@ -1,29 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:aop="http://www.springframework.org/schema/aop"
-	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
 		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
 		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
-	
+
 	<context:component-scan base-package="com.sjm">
-		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
-		<context:exclude-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
+		<context:exclude-filter type="annotation"
+			expression="org.springframework.stereotype.Controller" />
+		<context:exclude-filter type="annotation"
+			expression="org.springframework.web.bind.annotation.ControllerAdvice" />
 	</context:component-scan>
-	
-	<context:property-placeholder location="classpath:db.properties"/>
+
+	<context:property-placeholder location="classpath:db.properties" />
 	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
 		<property name="user" value="${user}"></property>
 		<property name="password" value="${password}"></property>
 		<property name="driverClass" value="${driverClass}"></property>
 		<property name="jdbcUrl" value="${jdbcUrl}"></property>
-		
+
 		<!-- 其他属性 -->
 	</bean>
-	
+
 	<!-- mybatis-Spring整合 -->
 	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionFactoryBean">
 		<property name="configLocation" value="classpath:mybatis-config.xml"></property>
@@ -31,30 +31,79 @@
 		<!-- 指定mapper文件所在位置 -->
 		<property name="mapperLocations" value="classpath:mapper/*.xml"></property>
 	</bean>
-		
+
 	<!-- 配置扫描器，将mybatis接口的实现加入到IOC容器中 -->
 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
 		<property name="basePackage" value="com.sjm.dao"></property>
 	</bean>
-	
-	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 		<property name="dataSource" ref="dataSource"></property>
 	</bean>
-	
+
 	<aop:config>
 		<!-- 配置切入点 -->
-		<aop:pointcut expression="execution(* com.sjm.service..*(..))" id="txPoint"/>
+		<aop:pointcut expression="execution(* com.sjm.service..*(..))"
+			id="txPoint" />
 		<!-- 配置事务增强 -->
-		<aop:advisor advice-ref="txAdvice" pointcut-ref="txPoint"/>
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="txPoint" />
 	</aop:config>
 	<!-- 事务增强配置 -->
 	<tx:advice id="txAdvice">
 		<tx:attributes>
-			<tx:method name="save*" read-only="false"/>
-			<tx:method name="update*" read-only="false"/>
-			<tx:method name="delete*" read-only="false"/>
-			<tx:method name="*" read-only="true"/>
+			<tx:method name="save*" read-only="false" />
+			<tx:method name="update*" read-only="false" />
+			<tx:method name="delete*" read-only="false" />
+			<tx:method name="*" read-only="true" />
 		</tx:attributes>
 	</tx:advice>
-	
+
+
+	<!-- 配置shiro，id要与web.xml文件中的filter名称相同 -->
+	<bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+		<property name="securityManager" ref="securityManager" />
+		<!-- override these for application-specific URLs if you like: <property 
+			name="loginUrl" value="/login.jsp"/> <property name="successUrl" value="/home.jsp"/> 
+			<property name="unauthorizedUrl" value="/unauthorized.jsp"/> -->
+		<!-- The 'filters' property is not necessary since any declared javax.servlet.Filter 
+			bean -->
+		<!-- defined will be automatically acquired and available via its beanName 
+			in chain -->
+		<!-- definitions, but you can perform instance overrides or name aliases 
+			here if you like: -->
+		<!-- <property name="filters"> <util:map> <entry key="anAlias" value-ref="someFilter"/> 
+			</util:map> </property> -->
+		<property name="filterChainDefinitions">
+			<value>
+				# some example chain definitions:
+				/admin/** = authc,
+				roles[admin]
+				/docs/** = authc, perms[document:read]
+				/** = authc
+				# more
+				URL-to-FilterChain definitions here
+			</value>
+		</property>
+	</bean>
+
+	<bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+		<!-- Single realm app. If you have multiple realms, use the 'realms' property 
+			instead. -->
+		<property name="realm" ref="myRealm" />
+		<!-- By default the servlet container sessions will be used. Uncomment 
+			this line to use shiro's native sessions (see the JavaDoc for more): -->
+		<!-- <property name="sessionMode" value="native"/> -->
+	</bean>
+	<bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor" />
+
+	<!-- Enable Shiro Annotations(such as @RequiresRoles,@RequiresPermissions) for Spring-configured beans. Only run after -->
+	<!-- the lifecycleBeanProcessor has run: -->
+	<bean
+		class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"
+		depends-on="lifecycleBeanPostProcessor" />
+	<bean
+		class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+		<property name="securityManager" ref="securityManager" />
+	</bean>
 </beans>
