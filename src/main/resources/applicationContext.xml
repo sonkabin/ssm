@@ -66,8 +66,9 @@
 		<!-- override these for application-specific URLs if you like: <property 
 			name="loginUrl" value="/login.jsp"/> <property name="successUrl" value="/home.jsp"/> 
 			<property name="unauthorizedUrl" value="/unauthorized.jsp"/> -->
-		<!-- The 'filters' property is not necessary since any declared javax.servlet.Filter 
-			bean -->
+		<!-- 这些filters可以不配置，因为可以声明任何javax.servlet.Filter bean来代替 -->
+		<property name="loginUrl" value="/login.jsp"></property>
+		<property name="successUrl" value="/home.jsp"></property>
 		<!-- defined will be automatically acquired and available via its beanName 
 			in chain -->
 		<!-- definitions, but you can perform instance overrides or name aliases 
@@ -77,6 +78,9 @@
 		<property name="filterChainDefinitions">
 			<value>
 				# some example chain definitions:
+				/login=anno
+				/js/**=anno
+				/logout=logout
 				/admin/** = authc,
 				roles[admin]
 				/docs/** = authc, perms[document:read]
@@ -86,8 +90,22 @@
 			</value>
 		</property>
 	</bean>
+	<!-- 登出后的行为 -->	
+<!-- 	<bean id="logoutFilter" class="org.apache.shiro.web.filter.authc.LogoutFilter"> -->
+<!-- 		<property name="redirectUrl" value="/login.jsp"></property> -->
+<!-- 	</bean> -->
 
+	<bean id="myRealm" class="com.sjm.realm.ShiroRealm">
+		<property name="credentialsMatcher">
+			<bean class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+				<property name="hashAlgorithmName" value="MD5"></property>
+				<property name="hashIterations" value="1024"></property>
+			</bean>
+		</property>
+	</bean>
 	<bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+    	<!-- 当需要使用多种验证策略时，需要配置，默认是一种 -->
+<!--         <property name="authenticator" ref="authenticator"></property> -->
 		<!-- Single realm app. If you have multiple realms, use the 'realms' property 
 			instead. -->
 		<property name="realm" ref="myRealm" />
@@ -95,10 +113,18 @@
 			this line to use shiro's native sessions (see the JavaDoc for more): -->
 		<!-- <property name="sessionMode" value="native"/> -->
 	</bean>
+	<!--  
+    <bean id="authenticator" 
+    	class="org.apache.shiro.authc.pam.ModularRealmAuthenticator">
+    	<property name="authenticationStrategy">
+    		<bean class="org.apache.shiro.authc.pam.AtLeastOneSuccessfulStrategy"></bean>
+    	</property>
+    </bean>
+    -->
+	<!-- 配置LifecycleBeanPostProcessor，可以自定义配置在SpringIOC容器中Shiro的生命周期 -->
 	<bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor" />
 
-	<!-- Enable Shiro Annotations(such as @RequiresRoles,@RequiresPermissions) for Spring-configured beans. Only run after -->
-	<!-- the lifecycleBeanProcessor has run: -->
+	<!-- 启用Shiro注解（例如@RequiresRoles,@RequiresPermissions），但要在配置了LifecycleBeanPostProcessor之后才能使用 -->
 	<bean
 		class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"
 		depends-on="lifecycleBeanPostProcessor" />
