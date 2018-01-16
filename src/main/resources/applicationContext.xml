@@ -16,10 +16,10 @@
 
 	<context:property-placeholder location="classpath:db.properties" />
 	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
-		<property name="user" value="${user}"></property>
-		<property name="password" value="${password}"></property>
-		<property name="driverClass" value="${driverClass}"></property>
-		<property name="jdbcUrl" value="${jdbcUrl}"></property>
+		<property name="user" value="${jdbc.user}"></property>
+		<property name="password" value="${jdbc.password}"></property>
+		<property name="driverClass" value="${jdbc.driverClass}"></property>
+		<property name="jdbcUrl" value="${jdbc.jdbcUrl}"></property>
 
 		<!-- 其他属性 -->
 	</bean>
@@ -50,7 +50,7 @@
 		<aop:advisor advice-ref="txAdvice" pointcut-ref="txPoint" />
 	</aop:config>
 	<!-- 事务增强配置 -->
-	<tx:advice id="txAdvice">
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
 		<tx:attributes>
 			<tx:method name="save*" read-only="false" />
 			<tx:method name="update*" read-only="false" />
@@ -68,32 +68,32 @@
 			<property name="unauthorizedUrl" value="/unauthorized.jsp"/> -->
 		<!-- 这些filters可以不配置，因为可以声明任何javax.servlet.Filter bean来代替 -->
 		<property name="loginUrl" value="/login.jsp"></property>
-		<property name="successUrl" value="/home.jsp"></property>
+		<property name="unauthorizedUrl" value="/unauthorized.jsp"/>
 		<!-- defined will be automatically acquired and available via its beanName 
 			in chain -->
 		<!-- definitions, but you can perform instance overrides or name aliases 
 			here if you like: -->
 		<!-- <property name="filters"> <util:map> <entry key="anAlias" value-ref="someFilter"/> 
 			</util:map> </property> -->
-		<property name="filterChainDefinitions">
-			<value>
-				# some example chain definitions:
-				/login=anno
-				/js/**=anno
-				/logout=logout
-				/admin/** = authc,
-				roles[admin]
-				/docs/** = authc, perms[document:read]
-				/** = authc
-				# more
-				URL-to-FilterChain definitions here
-			</value>
-		</property>
+		<!-- 配置filterChainDefinitionMap来代替filterChainDefinitions -->
+		<property name="filterChainDefinitionMap" ref="filterChainDefinitionMap"></property>
+<!-- 		<property name="filterChainDefinitions"> -->
+<!-- 			<value> -->
+<!-- 				/login=anon -->
+<!-- 				/register=anon -->
+<!-- 				/index.jsp=anon -->
+<!-- 				/register.jsp=anon -->
+<!-- 				/login.jsp=anon -->
+<!-- 				/logout=logout -->
+<!-- 				/user.jsp=authc,roles[user] -->
+<!-- 				/admin.jsp=authc,roles[admin] -->
+<!-- 				/root.jsp=authc,roles[root] -->
+<!-- 				/** = authc -->
+<!-- 			</value> -->
+<!-- 		</property> -->
 	</bean>
-	<!-- 登出后的行为 -->	
-<!-- 	<bean id="logoutFilter" class="org.apache.shiro.web.filter.authc.LogoutFilter"> -->
-<!-- 		<property name="redirectUrl" value="/login.jsp"></property> -->
-<!-- 	</bean> -->
+	<bean id="filterChainDefinitionMap" factory-bean="filterChainDefinitionMapBuilder" factory-method="bulidFilterChainDefinitionMap"></bean>
+	<bean id="filterChainDefinitionMapBuilder" class="com.sjm.util.FilterChainDefinitionMapBuilder"></bean>
 
 	<bean id="myRealm" class="com.sjm.realm.ShiroRealm">
 		<property name="credentialsMatcher">

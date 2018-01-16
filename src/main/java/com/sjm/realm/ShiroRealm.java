@@ -1,6 +1,7 @@
 package com.sjm.realm;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.shiro.authc.AuthenticationException;
@@ -17,7 +18,10 @@ import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.util.ByteSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.sjm.bean.User;
 import com.sjm.service.UserService;
+import com.sjm.util.MD5Util;
+import com.sjm.util.MyUtil;
 
 public class ShiroRealm extends AuthorizingRealm {
 
@@ -29,16 +33,19 @@ public class ShiroRealm extends AuthorizingRealm {
 	@Override
 	protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
 		// 1. 从 PrincipalCollection 中来获取登录用户的信息
-		Object principal = principals.getPrimaryPrincipal();
+		String principal = (String)principals.getPrimaryPrincipal();
+		// 2. 利用登录的用户的信息来用户当前用户的角色或权限
+		User user = userService.findUserByName(principal);
 
-		// 2. 利用登录的用户的信息来用户当前用户的角色或权限(可能需要查询数据库)
+		//3.遍历设置用户的权限
+		String role = user.getRole();
+		String[] split = role.split(",");
 		Set<String> roles = new HashSet<>();
-		roles.add("user");
-		if ("admin".equals(principal)) {
-			roles.add("admin");
+		for (String string : split) {
+			roles.add(string);
 		}
 
-		// 3. 创建 SimpleAuthorizationInfo, 并设置其 roles 属性.
+		// 4. 创建 SimpleAuthorizationInfo, 并设置其 roles 属性.
 		SimpleAuthorizationInfo info = new SimpleAuthorizationInfo(roles);
 		return info;
 	}
@@ -53,19 +60,26 @@ public class ShiroRealm extends AuthorizingRealm {
 
 		// 2.从UsernamePasswordToken获取username
 		String username = upToken.getUsername();
+		String password = new String(upToken.getPassword());
+		password = MD5Util.getPassword(username, password);
 
 		// 3.调用service层方法，获取username对应的用户记录
-		System.out.println("获取用户" + username);
+		List<User> users = userService.findUserByUP(username, password);
 
 		// 4.若用户不存在，抛出UnknownAccountException 异常
-		if ("unknown".equals(username)) {
+		if (MyUtil.ListNull(users)) {
 			throw new UnknownAccountException("用户名或密码错误");
 		}
 		// 5. 根据用户信息的情况, 决定是否需要抛出其他的 AuthenticationException 异常.
 		if ("monster".equals(username)) {
 			throw new LockedAccountException("用户被锁定");
 		}
-
+		
+		String realmName = getName();
+		ByteSource credentialsSalt = ByteSource.Util.bytes(username);
+		SimpleAuthenticationInfo info = new SimpleAuthenticationInfo(username, password, credentialsSalt,
+				realmName);
+		/*
 		// 6. 根据用户的情况, 来构建 AuthenticationInfo 对象并返回. 通常使用的实现类为: SimpleAuthenticationInfo
 		// 以下信息是从数据库中获取的.
 		// 1). principal: 认证的实体信息. 可以是 username, 也可以是数据表对应的用户的实体类对象.
@@ -78,6 +92,7 @@ public class ShiroRealm extends AuthorizingRealm {
 		ByteSource credentialsSalt = ByteSource.Util.bytes(username);
 		SimpleAuthenticationInfo info = new SimpleAuthenticationInfo(principal, credentials, credentialsSalt,
 				realmName);
+		*/
 		return info;
 	}
 
