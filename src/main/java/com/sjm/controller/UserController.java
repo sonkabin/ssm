@@ -1,4 +1,4 @@
-package com.sjm.handler;
+package com.sjm.controller;
 
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
@@ -15,7 +15,7 @@ import com.sjm.service.UserService;
 import com.sjm.util.MyUtil;
 
 @Controller
-public class UserHandler {
+public class UserController {
 
 	@Autowired
 	private UserService userService; 
@@ -57,11 +57,7 @@ public class UserHandler {
 				return "redirect:/login.jsp";
 			
 			UsernamePasswordToken token = new UsernamePasswordToken(username, password);
-			try {
-				currentUser.login(token);
-			} catch (AuthenticationException e) {
-				System.out.println(e.getMessage());
-			}
+			currentUser.login(token);
 		}
 		return "redirect:/list.jsp";
 	}
