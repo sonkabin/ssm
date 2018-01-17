@@ -10,7 +10,7 @@ public class FilterChainDefinitionMapBuilder {
 	public LinkedHashMap<String, String> bulidFilterChainDefinitionMap(){
 		LinkedHashMap<String, String> map = new LinkedHashMap<>();
 		map.put("/login", "anon");
-		map.put("/register", "anon");
+		map.put("/saveUser", "anon");
 		map.put("/index.jsp", "anon");
 		map.put("/register.jsp", "anon");
 		map.put("/login.jsp", "anon");

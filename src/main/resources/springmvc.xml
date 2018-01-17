@@ -15,4 +15,15 @@
 	<mvc:annotation-driven></mvc:annotation-driven>
 	<mvc:default-servlet-handler/>
 	
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/*"/>
+			<!-- 不拦截增删改操作 -->
+			<mvc:exclude-mapping path="/save*"/>
+			<mvc:exclude-mapping path="/update*"/>
+			<mvc:exclude-mapping path="/delete*"/>
+			<ref bean="logInterceptor"/>
+		</mvc:interceptor>
+	</mvc:interceptors>
+	
 </beans>

@@ -21,8 +21,8 @@ public class UserController {
 	private UserService userService; 
 	
 	@ResponseBody
-	@RequestMapping(value="/register",method=RequestMethod.POST)
-	public Message register(User user) {
+	@RequestMapping(value="/saveUser",method=RequestMethod.POST)
+	public Message saveUser(User user) {
 		userService.saveUser(user);
 		return Message.success();
 	}
