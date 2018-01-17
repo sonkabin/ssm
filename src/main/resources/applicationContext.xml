@@ -47,7 +47,7 @@
 		<aop:pointcut expression="execution(* com.sjm.service..*(..))"
 			id="txPoint" />
 		<!-- 配置事务增强 -->
-		<aop:advisor advice-ref="txAdvice" pointcut-ref="txPoint" />
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="txPoint"/>
 	</aop:config>
 	<!-- 事务增强配置 -->
 	<tx:advice id="txAdvice" transaction-manager="transactionManager">
