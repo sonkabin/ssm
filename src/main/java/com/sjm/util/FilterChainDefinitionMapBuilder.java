@@ -18,6 +18,10 @@ public class FilterChainDefinitionMapBuilder {
 		map.put("/user.jsp","authc,roles[user]");
 		map.put("/admin.jsp","authc,roles[admin]");
 		map.put("/root.jsp","authc,roles[root]");	
+		
+		map.put("/css/**","anon");	
+		map.put("/js/**","anon");	
+		
 		map.put("/**","authc");	
 		
 		return map;
