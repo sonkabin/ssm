@@ -39,4 +39,6 @@ public class LogInterceptor extends HandlerInterceptorAdapter {
 			logger.info(paraName + ":" + value);
 		}
 	}
+	
+	
 }
