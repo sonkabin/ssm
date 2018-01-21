@@ -10,7 +10,7 @@ public class FilterChainDefinitionMapBuilder {
 	public LinkedHashMap<String, String> bulidFilterChainDefinitionMap(){
 		LinkedHashMap<String, String> map = new LinkedHashMap<>();
 		map.put("/login", "anon");
-		map.put("/register", "anon");
+		map.put("/saveUser", "anon");
 		map.put("/index.jsp", "anon");
 		map.put("/register.jsp", "anon");
 		map.put("/login.jsp", "anon");
@@ -18,6 +18,10 @@ public class FilterChainDefinitionMapBuilder {
 		map.put("/user.jsp","authc,roles[user]");
 		map.put("/admin.jsp","authc,roles[admin]");
 		map.put("/root.jsp","authc,roles[root]");	
+		
+		map.put("/css/**","anon");	
+		map.put("/js/**","anon");	
+		
 		map.put("/**","authc");	
 		
 		return map;

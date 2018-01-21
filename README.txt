@@ -1,2 +1,3 @@
 SSM在Linux下的配置
 整合了Shiro
+在根路径下需要增加db.properties配置数据库连接信息
